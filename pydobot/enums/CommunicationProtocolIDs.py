@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import IntEnum
 
 
-class CommunicationProtocolIDs(Enum):
+class CommunicationProtocolIDs(IntEnum):
 
     GET_SET_DEVICE_SN = 0
     GET_SET_DEVICE_NAME = 1
@@ -23,7 +23,7 @@ class CommunicationProtocolIDs(Enum):
     SET_GET_JOG_COORDINATE_PARAMS = 71
     SET_GET_JOG_COMMON_PARAMS = 72
     SET_GET_PTP_JOINT_PARAMS = 80
-    SET_GET_PTP_COORDINATEP_ARAMS = 81
+    SET_GET_PTP_COORDINATE_PARAMS = 81
     SET_GET_PTP_JUMP_PARAMS = 82
     SET_GET_PTP_COMMON_PARAMS = 83
     SET_PTP_CMD = 84

@@ -5,6 +5,7 @@ class CommunicationProtocolIDs(IntEnum):
 
     GET_SET_DEVICE_SN = 0
     GET_SET_DEVICE_NAME = 1
+    GET_DEVICE_VERSION = 2
     GET_POSE = 10
     RESET_POSE = 11
     GET_ALARMS_STATE = 20

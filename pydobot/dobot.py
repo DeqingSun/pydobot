@@ -116,6 +116,26 @@ class Dobot:
         self.ser.write(msg.bytes())
 
     """
+        Get Device Version
+    """
+    def _get_device_version(self):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.GET_DEVICE_VERSION
+        msg.ctrl = ControlValues.ZERO
+        response = self._send_command(msg,wait=False)
+        
+        print("###",response)
+        
+        self.majorVersion = struct.unpack_from('B', response.params, 0)[0]
+        self.minorVersion = struct.unpack_from('B', response.params, 1)[0]
+        self.revision = struct.unpack_from('B', response.params, 2)[0]
+        
+        if self.verbose:
+            print("pydobot device version: %d.%d.%d" %
+                  (self.majorVersion, self.minorVersion, self.revision))
+        return response
+
+    """
         Executes the CP Command
     """
     def _set_cp_cmd(self, x, y, z):

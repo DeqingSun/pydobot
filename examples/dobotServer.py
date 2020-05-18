@@ -51,6 +51,9 @@ from glob import glob
 def jogMachine(parameters):
     print("Hello from a function")
     print(parameters)
+    isJoint = int(parameters["isJoint"][0])
+    cmd = int(parameters["cmd"][0])
+    device._set_jog_command(isJoint,cmd);
 
 
 if psutil.OSX:
@@ -61,6 +64,12 @@ if psutil.LINUX:
 device = Dobot(port=available_ports[0], verbose=True)
 
 device._get_device_version()
+
+#test only
+device._get_jog_joint_parameters()  #default: jog joint velocity 15.0, 15.0, 15.0, 30.0. jog joint acceleration 50.0, 50.0, 50.0, 50.0
+device._get_jog_coordinate_parameters() #default:jog coordinate velocity 60.0, 60.0, 60.0, 60.0. jog coordinate acceleration 60.0, 60.0, 60.0, 60.0
+#device._set_jog_common_parameters(1.5,5.0)  
+device._get_jog_common_parameters() #default jog velocityRatio:15.000 jog accelerationRatio:50.000
 
 webRespDict["/version"]=("Dobot device version: %d.%d.%d" % (device.majorVersion, device.minorVersion, device.revision))
 

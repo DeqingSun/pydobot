@@ -62,19 +62,12 @@ class Dobot:
         self.j4 = struct.unpack_from('f', response.params, 28)[0]
 
         if self.verbose:
-            print("pydobot: x:%03.1f \
-                            y:%03.1f \
-                            z:%03.1f \
-                            r:%03.1f \
-                            j1:%03.1f \
-                            j2:%03.1f \
-                            j3:%03.1f \
-                            j4:%03.1f" %
+            print("pydobot: x:%03.1f y:%03.1f z:%03.1f r:%03.1f j1:%03.1f j2:%03.1f j3:%03.1f j4:%03.1f" %
                   (self.x, self.y, self.z, self.r, self.j1, self.j2, self.j3, self.j4))
         return response
 
     def _read_message(self):
-        time.sleep(0.1)
+        time.sleep(0.015)
         b = self.ser.read_all()
         if len(b) > 0:
             msg = Message(b)
@@ -123,13 +116,9 @@ class Dobot:
         msg.id = CommunicationProtocolIDs.GET_DEVICE_VERSION
         msg.ctrl = ControlValues.ZERO
         response = self._send_command(msg,wait=False)
-        
-        print("###",response)
-        
         self.majorVersion = struct.unpack_from('B', response.params, 0)[0]
         self.minorVersion = struct.unpack_from('B', response.params, 1)[0]
         self.revision = struct.unpack_from('B', response.params, 2)[0]
-        
         if self.verbose:
             print("pydobot device version: %d.%d.%d" %
                   (self.majorVersion, self.minorVersion, self.revision))
@@ -177,6 +166,94 @@ class Dobot:
             msg.params.extend(bytearray([0x01]))
         else:
             msg.params.extend(bytearray([0x00]))
+        return self._send_command(msg)
+
+    """
+        Get jog joint parameters
+    """
+    def _get_jog_joint_parameters(self):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_JOG_JOINT_PARAMS
+        msg.ctrl = ControlValues.ZERO
+        response = self._send_command(msg,wait=False)
+        self.jogJointVelocity = [0]*4
+        self.jogJointAcceleration = [0]*4
+        self.jogJointVelocity[0] = struct.unpack_from('f', response.params, 0)[0]
+        self.jogJointVelocity[1] = struct.unpack_from('f', response.params, 4)[0]
+        self.jogJointVelocity[2] = struct.unpack_from('f', response.params, 8)[0]
+        self.jogJointVelocity[3] = struct.unpack_from('f', response.params, 12)[0]
+        self.jogJointAcceleration[0] = struct.unpack_from('f', response.params, 16)[0]
+        self.jogJointAcceleration[1] = struct.unpack_from('f', response.params, 20)[0]
+        self.jogJointAcceleration[2] = struct.unpack_from('f', response.params, 24)[0]
+        self.jogJointAcceleration[3] = struct.unpack_from('f', response.params, 28)[0]
+        if self.verbose:
+            print("pydobot: jog joint velocity %03.1f, %03.1f, %03.1f, %03.1f. jog joint acceleration %03.1f, %03.1f, %03.1f, %03.1f" %
+                  (self.jogJointVelocity[0], self.jogJointVelocity[1], self.jogJointVelocity[2], self.jogJointVelocity[3],
+                   self.jogJointAcceleration[0], self.jogJointAcceleration[1], self.jogJointAcceleration[2], self.jogJointAcceleration[3]))
+        return response
+
+    """
+        Get jog coordinate parameters
+    """
+    def _get_jog_coordinate_parameters(self):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_JOG_COORDINATE_PARAMS
+        msg.ctrl = ControlValues.ZERO
+        response = self._send_command(msg,wait=False)
+        self.jogCoordinateVelocity = [0]*4
+        self.jogCoordinateAcceleration = [0]*4
+        self.jogCoordinateVelocity[0] = struct.unpack_from('f', response.params, 0)[0]
+        self.jogCoordinateVelocity[1] = struct.unpack_from('f', response.params, 4)[0]
+        self.jogCoordinateVelocity[2] = struct.unpack_from('f', response.params, 8)[0]
+        self.jogCoordinateVelocity[3] = struct.unpack_from('f', response.params, 12)[0]
+        self.jogCoordinateAcceleration[0] = struct.unpack_from('f', response.params, 16)[0]
+        self.jogCoordinateAcceleration[1] = struct.unpack_from('f', response.params, 20)[0]
+        self.jogCoordinateAcceleration[2] = struct.unpack_from('f', response.params, 24)[0]
+        self.jogCoordinateAcceleration[3] = struct.unpack_from('f', response.params, 28)[0]
+        if self.verbose:
+            print("pydobot: jog coordinate velocity %03.1f, %03.1f, %03.1f, %03.1f. jog coordinate acceleration %03.1f, %03.1f, %03.1f, %03.1f" %
+                  (self.jogCoordinateVelocity[0], self.jogCoordinateVelocity[1], self.jogCoordinateVelocity[2], self.jogCoordinateVelocity[3],
+                   self.jogCoordinateAcceleration[0], self.jogCoordinateAcceleration[1], self.jogCoordinateAcceleration[2], self.jogCoordinateAcceleration[3]))
+        return response
+
+    """
+        Get jog common parameters
+    """
+    def _get_jog_common_parameters(self):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_JOG_COMMON_PARAMS
+        msg.ctrl = ControlValues.ZERO
+        response = self._send_command(msg,wait=False)
+        self.jogVelocityRatio = struct.unpack_from('f', response.params, 0)[0]
+        self.jogAccelerationRatio = struct.unpack_from('f', response.params, 4)[0]
+        if self.verbose:
+            print("pydobot: jog velocityRatio:%03.3f jog accelerationRatio:%03.3f" % (self.jogVelocityRatio, self.jogAccelerationRatio))
+        return response
+    
+    """
+        Set jog common parameters
+    """
+    def _set_jog_common_parameters(self, velocityRatio, accelerationRatio):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_JOG_COMMON_PARAMS
+        msg.ctrl = ControlValues.THREE
+        msg.params = bytearray([])
+        msg.params.extend(bytearray(struct.pack('f', velocityRatio)))
+        msg.params.extend(bytearray(struct.pack('f', accelerationRatio)))
+        return self._send_command(msg)
+    
+    """
+        Sets jog command
+    """
+    def _set_jog_command(self, isJoint, cmd, isQueued = True):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_JOG_COMMAND
+        if isQueued:
+            msg.ctrl = ControlValues.THREE
+        else:
+            msg.ctrl = ControlValues.TWO
+        msg.params = bytearray([])
+        msg.params.extend(bytearray([isJoint,cmd]))
         return self._send_command(msg)
 
     """

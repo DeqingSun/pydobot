@@ -1,6 +1,37 @@
 <html>
-<header><title>This is title</title></header>
+<header>
+    <title>This is title</title>
+
+<style>
+.bigbutton {
+
+  display: inline-block;
+  padding: 15px 32px;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+</style>
+
+<script type="text/javascript">
+
+    var jogCmd = function(isJoint,cmd){
+        console.log(isJoint,cmd)
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET", "/jog?isJoint="+isJoint+"&cmd="+cmd, true);
+        xhttp.send();
+    }
+
+
+</script>
+
+</header>
 <body>
 Hello world
+
+<br>
+<button class="bigbutton" onmousedown="jogCmd(0,1)" onmouseup="jogCmd(0,0)">JOG X+</button>
+<button class="bigbutton" onmousedown="jogCmd(0,2)" onmouseup="jogCmd(0,0)">JOG X-</button>
+
 </body>
 </html>

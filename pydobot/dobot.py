@@ -139,6 +139,33 @@ class Dobot:
         return self._send_command(msg)
 
     """
+        Set end effector parameters
+    """
+    def _set_end_effector_parameters(self, xBias):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_END_EFFECTOR_PARAMS
+        msg.ctrl = ControlValues.THREE
+        msg.params = bytearray([])
+        msg.params.extend(bytearray(struct.pack('f', xBias)))
+        return self._send_command(msg)
+
+    """
+        Get end effector parameters
+    """
+    def _get_end_effector_parameters(self):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_END_EFFECTOR_PARAMS
+        msg.ctrl = ControlValues.ZERO
+        response = self._send_command(msg,wait=False)
+        self.endEffectorXBias = struct.unpack_from('f', response.params, 0)[0]
+        #self.endEffectorYBias = struct.unpack_from('f', response.params, 4)[0] #no response?
+        #self.endEffectorZBias = struct.unpack_from('f', response.params, 8)[0]
+        if self.verbose:
+            #print("pydobot: endEffector bias X %03.1f, Y %03.1f, Z %03.1f." % (self.endEffectorXBias, self.endEffectorYBias, self.endEffectorZBias))
+            print("pydobot: endEffector bias X %03.1f." % (self.endEffectorXBias))
+        return response
+
+    """
         Sets the status of the gripper
     """
     def _set_end_effector_gripper(self, enable=False):
@@ -327,6 +354,20 @@ class Dobot:
         msg.params.extend(bytearray(struct.pack('f', z)))
         msg.params.extend(bytearray(struct.pack('f', r)))
         return self._send_command(msg, wait)
+
+    """
+        Set External Motor movement
+    """
+    def _set_emotor_s(self, index, isEnabled, speed, distance):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_EMOTOR_S
+        msg.ctrl = ControlValues.THREE
+        msg.params = bytearray([])
+        msg.params.extend(bytearray([index]))
+        msg.params.extend(bytearray(struct.pack('B', isEnabled)))
+        msg.params.extend(bytearray(struct.pack('i', speed)))
+        msg.params.extend(bytearray(struct.pack('i', distance)))
+        return self._send_command(msg)
 
     """
         Clears command queue

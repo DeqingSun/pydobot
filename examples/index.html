@@ -21,7 +21,12 @@
         xhttp.open("GET", "/jog?isJoint="+isJoint+"&cmd="+cmd, true);
         xhttp.send();
     }
-
+    var moveEMotor = function(speed,dist){
+        console.log(speed,dist)
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET", "emotor?index=0&isEnabled=1&speed="+speed+"&&distance="+dist, true);
+        xhttp.send();
+    }
 
 </script>
 
@@ -32,6 +37,20 @@ Hello world
 <br>
 <button class="bigbutton" onmousedown="jogCmd(0,1)" onmouseup="jogCmd(0,0)">JOG X+</button>
 <button class="bigbutton" onmousedown="jogCmd(0,2)" onmouseup="jogCmd(0,0)">JOG X-</button>
+<br>
+<button class="bigbutton" onmousedown="jogCmd(0,3)" onmouseup="jogCmd(0,0)">JOG Y+</button>
+<button class="bigbutton" onmousedown="jogCmd(0,4)" onmouseup="jogCmd(0,0)">JOG Y-</button>
+<br>
+<button class="bigbutton" onmousedown="jogCmd(0,5)" onmouseup="jogCmd(0,0)">JOG Z+</button>
+<button class="bigbutton" onmousedown="jogCmd(0,6)" onmouseup="jogCmd(0,0)">JOG Z-</button>
+
+
+<br>
+<br>
+<br>
+<br>
+<button class="bigbutton" onmousedown="moveEMotor(-10000,2000)">Motor Down</button>
+<button class="bigbutton" onmousedown="moveEMotor(10000,2000)">Motor UP</button>
 
 </body>
 </html>

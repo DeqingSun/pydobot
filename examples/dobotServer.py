@@ -49,12 +49,20 @@ from glob import glob
 
 
 def jogMachine(parameters):
-    print("Hello from a function")
+    print("jogMachine")
     print(parameters)
     isJoint = int(parameters["isJoint"][0])
     cmd = int(parameters["cmd"][0])
     device._set_jog_command(isJoint,cmd);
-
+    
+def moveEMotor(parameters):
+    print("moveEMotor")
+    print(parameters)
+    index = int(parameters["index"][0])
+    isEnabled = int(parameters["isEnabled"][0])
+    speed = int(parameters["speed"][0])
+    distance = int(parameters["distance"][0])
+    device._set_emotor_s(index, isEnabled, speed, distance);
 
 if psutil.OSX:
     available_ports = glob('/dev/cu*usbserial*')  # mask for OSX Dobot port
@@ -66,6 +74,8 @@ device = Dobot(port=available_ports[0], verbose=True)
 device._get_device_version()
 
 #test only
+#device._set_end_effector_parameters(65) #paste dispenser
+device._get_end_effector_parameters()
 device._get_jog_joint_parameters()  #default: jog joint velocity 15.0, 15.0, 15.0, 30.0. jog joint acceleration 50.0, 50.0, 50.0, 50.0
 device._get_jog_coordinate_parameters() #default:jog coordinate velocity 60.0, 60.0, 60.0, 60.0. jog coordinate acceleration 60.0, 60.0, 60.0, 60.0
 #device._set_jog_common_parameters(1.5,5.0)  
@@ -82,6 +92,7 @@ webRespDict["/version"]=("Dobot device version: %d.%d.%d" % (device.majorVersion
 
 
 webRespDict["/jog"]=jogMachine
+webRespDict["/emotor"]=moveEMotor
 
 httpd.serve_forever()
 

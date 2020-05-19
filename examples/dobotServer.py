@@ -58,6 +58,19 @@ def jogMachine(parameters):
     cmd = int(parameters["cmd"][0])
     device._set_jog_command(isJoint,cmd);
     
+def moveInc(parameters):
+    print("moveInc")
+    print(parameters)
+    x = y = z = r = 0
+    try:
+        x = float(parameters["x"][0])
+        y = float(parameters["y"][0])
+        z = float(parameters["z"][0])
+        r = float(parameters["r"][0])
+    except:
+        pass
+    device.move_inc_to(x,y,z,r,wait=True)
+    
 def moveEMotor(parameters):
     print("moveEMotor")
     print(parameters)
@@ -122,6 +135,18 @@ webRespDict["/jog"]=jogMachine
 webRespDict["/emotor"]=moveEMotor
 webRespDict["/pose"]=getPose
 webRespDict["/home"]=home
+webRespDict["/moveinc"]=moveInc
+
+
+#startx = device.x
+#starty = device.y
+#startz = device.z
+#startr = device.r
+
+#device.move_to(startx+10,starty+10,startz,startr,wait=True)
+#device.jump_to(startx,starty,startz,startr,wait=True)
+#device.move_inc_to(1,1,0,0,wait=True)
+#device.move_inc_to(-1,-1,0,0,wait=True)
 
 httpd.serve_forever()
 

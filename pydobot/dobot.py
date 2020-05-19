@@ -523,6 +523,12 @@ class Dobot:
 
     def move_to(self, x, y, z, r, wait=False):
         self._set_ptp_cmd(x, y, z, r, mode=PTPMode.MOVL_XYZ, wait=wait)
+        
+    def move_inc_to(self, x, y, z, r, wait=False):
+        self._set_ptp_cmd(x, y, z, r, mode=PTPMode.MOVJ_XYZ_INC, wait=wait)
+
+    def jump_to(self, x, y, z, r, wait=False):
+        self._set_ptp_cmd(x, y, z, r, mode=PTPMode.JUMP_XYZ, wait=wait)
 
     def suck(self, enable):
         self._set_end_effector_suction_cup(enable)

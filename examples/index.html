@@ -21,6 +21,13 @@
         xhttp.open("GET", "/jog?isJoint="+isJoint+"&cmd="+cmd, true);
         xhttp.send();
     }
+    
+    var moveIncCmd = function(x,y,z,r){
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET", "/moveinc?x="+x+"&y="+y+"&z="+z+"&r="+r, true);
+        xhttp.send();
+    }
+    
     var moveEMotor = function(speed,dist){
         console.log(speed,dist)
         var xhttp = new XMLHttpRequest();
@@ -59,7 +66,16 @@ Hello world
 <br>
 <button class="bigbutton" onmousedown="jogCmd(0,5)" onmouseup="jogCmd(0,0)">JOG Z+</button>
 <button class="bigbutton" onmousedown="jogCmd(0,6)" onmouseup="jogCmd(0,0)">JOG Z-</button>
-
+<br>
+<br>
+<button class="bigbutton" onmousedown="moveIncCmd(0.2,0,0,0)">INC X+</button>
+<button class="bigbutton" onmousedown="moveIncCmd(-0.2,0,0,0)">INC X-</button>
+<br>
+<button class="bigbutton" onmousedown="moveIncCmd(0,0.2,0,0)">INC Y+</button>
+<button class="bigbutton" onmousedown="moveIncCmd(0,-0.2,0,0)">INC Y-</button>
+<br>
+<button class="bigbutton" onmousedown="moveIncCmd(0,0,0.2,0)">INC Z+</button>
+<button class="bigbutton" onmousedown="moveIncCmd(0,0,-0.2,0)">INC Z-</button>
 
 <br>
 <br>

@@ -29,11 +29,11 @@ class Dobot:
 
         self._set_queued_cmd_start_exec()
         self._set_queued_cmd_clear()
-        self._set_ptp_joint_params(200, 200, 200, 200, 200, 200, 200, 200)
         self._set_ptp_coordinate_params(velocity=200, acceleration=200)
         self._set_ptp_jump_params(10, 200)
         self._set_ptp_common_params(velocity=100, acceleration=100)
         self._get_pose()
+        self.set_ptp_joint_params(200, 200, 200, 200, 200, 200, 200, 200)
 
     """
         Gets the current command index
@@ -329,6 +329,29 @@ class Dobot:
         msg.params.extend(bytearray([isJoint,cmd]))
         return self._send_command(msg)
 
+
+    """
+        Gets the velocity ratio and the acceleration ratio in PTP mode
+    """
+    def _get_ptp_joint_params(self):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_PTP_JOINT_PARAMS
+        msg.ctrl = ControlValues.ZERO
+        response = self._send_command(msg,wait=False)
+        self.ptpJointVelX = struct.unpack_from('f', response.params, 0)[0]
+        self.ptpJointVelY = struct.unpack_from('f', response.params, 4)[0]
+        self.ptpJointVelZ = struct.unpack_from('f', response.params, 8)[0]
+        self.ptpJointVelR = struct.unpack_from('f', response.params, 12)[0]
+        self.ptpJointAccX = struct.unpack_from('f', response.params, 16)[0]
+        self.ptpJointAccY = struct.unpack_from('f', response.params, 20)[0]
+        self.ptpJointAccZ = struct.unpack_from('f', response.params, 24)[0]
+        self.ptpJointAccR = struct.unpack_from('f', response.params, 28)[0]
+        if self.verbose:
+            print("pydobot: PTP joint vel: %03.1f,%03.1f,%03.1f,%03.1f acc:%03.1f,%03.1f,%03.1f,%03.1f" %
+                  (self.ptpJointVelX, self.ptpJointVelY, self.ptpJointVelZ, self.ptpJointVelR,
+                   self.ptpJointAccX, self.ptpJointAccY, self.ptpJointAccZ, self.ptpJointAccR))
+        return response
+
     """
         Sets the velocity ratio and the acceleration ratio in PTP mode
     """
@@ -487,3 +510,12 @@ class Dobot:
                 self._get_home_parameters()
         self._set_home_cmd(True)
     
+    def set_ptp_joint_params(self, v_x, v_y, v_z, v_r, a_x, a_y, a_z, a_r):
+        self._get_ptp_joint_params()
+        if (abs(v_x-self.ptpJointVelX)>0.01 or abs(v_y-self.ptpJointVelY)>0.01 or
+            abs(v_z-self.ptpJointVelZ)>0.01 or abs(v_r-self.ptpJointVelR)>0.01 or
+            abs(a_x-self.ptpJointAccX)>0.01 or abs(a_y-self.ptpJointAccY)>0.01 or
+            abs(a_z-self.ptpJointAccZ)>0.01 or abs(a_r-self.ptpJointAccR)>0.01):  #float number never equal....
+            self._set_ptp_joint_params(v_x, v_y, v_z, v_r, a_x, a_y, a_z, a_r)
+            self._get_ptp_joint_params()
+        

@@ -29,11 +29,11 @@ class Dobot:
 
         self._set_queued_cmd_start_exec()
         self._set_queued_cmd_clear()
-        self._set_ptp_coordinate_params(velocity=200, acceleration=200)
         self._set_ptp_jump_params(10, 200)
         self._set_ptp_common_params(velocity=100, acceleration=100)
         self._get_pose()
         self.set_ptp_joint_params(200, 200, 200, 200, 200, 200, 200, 200)
+        self.set_ptp_coordinate_params(velocity=200, acceleration=200)
 
     """
         Gets the current command index
@@ -371,6 +371,23 @@ class Dobot:
         return self._send_command(msg)
 
     """
+        Gets the velocity and acceleration of the Cartesian coordinate axes in PTP mode
+    """
+    def _get_ptp_coordinate_params(self):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_PTP_COORDINATE_PARAMS
+        msg.ctrl = ControlValues.ZERO
+        response = self._send_command(msg,wait=False)
+        self.ptpCoordinateXYZVel = struct.unpack_from('f', response.params, 0)[0]
+        self.ptpCoordinateRVel = struct.unpack_from('f', response.params, 4)[0]
+        self.ptpCoordinateXYZAcc = struct.unpack_from('f', response.params, 8)[0]
+        self.ptpCoordinateRAcc = struct.unpack_from('f', response.params, 12)[0]
+        if self.verbose:
+            print("pydobot: PTP Coordinate vel: %03.1f,%03.1f acc:%03.1f,%03.1f" %
+                  (self.ptpCoordinateXYZVel, self.ptpCoordinateRVel, self.ptpCoordinateXYZAcc, self.ptpCoordinateRAcc))
+        return response
+
+    """
         Sets the velocity and acceleration of the Cartesian coordinate axes in PTP mode
     """
     def _set_ptp_coordinate_params(self, velocity, acceleration):
@@ -519,3 +536,9 @@ class Dobot:
             self._set_ptp_joint_params(v_x, v_y, v_z, v_r, a_x, a_y, a_z, a_r)
             self._get_ptp_joint_params()
         
+    def set_ptp_coordinate_params(self, velocity, acceleration):
+        self._get_ptp_coordinate_params()
+        if (abs(velocity-self.ptpCoordinateXYZVel)>0.01 or abs(acceleration-self.ptpCoordinateXYZAcc)>0.01):  #float number never equal....
+            self._set_ptp_coordinate_params(velocity, acceleration)
+            self._get_ptp_coordinate_params()
+

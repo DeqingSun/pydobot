@@ -29,11 +29,11 @@ class Dobot:
 
         self._set_queued_cmd_start_exec()
         self._set_queued_cmd_clear()
-        self._set_ptp_jump_params(10, 200)
         self._set_ptp_common_params(velocity=100, acceleration=100)
         self._get_pose()
         self.set_ptp_joint_params(200, 200, 200, 200, 200, 200, 200, 200)
         self.set_ptp_coordinate_params(velocity=200, acceleration=200)
+        self.set_ptp_jump_params(10, 200)
 
     """
         Gets the current command index
@@ -402,6 +402,20 @@ class Dobot:
         return self._send_command(msg)
 
     """
+       Gets the lifting height and the maximum lifting height in JUMP mode
+    """
+    def _get_ptp_jump_params(self):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_PTP_JUMP_PARAMS
+        msg.ctrl = ControlValues.ZERO
+        response = self._send_command(msg,wait=False)
+        self.ptpJump = struct.unpack_from('f', response.params, 0)[0]
+        self.ptpLimit = struct.unpack_from('f', response.params, 4)[0]
+        if self.verbose:
+            print("pydobot: PTP Jump: %03.1f Limit:%03.1f" % (self.ptpJump, self.ptpLimit))
+        return response
+
+    """
        Sets the lifting height and the maximum lifting height in JUMP mode
     """
     def _set_ptp_jump_params(self, jump, limit):
@@ -542,3 +556,8 @@ class Dobot:
             self._set_ptp_coordinate_params(velocity, acceleration)
             self._get_ptp_coordinate_params()
 
+    def set_ptp_jump_params(self, jump, limit):
+        self._get_ptp_jump_params()
+        if (abs(jump-self.ptpJump)>0.01 or abs(limit-self.ptpLimit)>0.01):  #float number never equal....
+            self._set_ptp_jump_params(jump, limit)
+            self._get_ptp_jump_params()

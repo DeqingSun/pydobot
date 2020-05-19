@@ -29,11 +29,11 @@ class Dobot:
 
         self._set_queued_cmd_start_exec()
         self._set_queued_cmd_clear()
-        self._set_ptp_common_params(velocity=100, acceleration=100)
-        self._get_pose()
         self.set_ptp_joint_params(200, 200, 200, 200, 200, 200, 200, 200)
         self.set_ptp_coordinate_params(velocity=200, acceleration=200)
         self.set_ptp_jump_params(10, 200)
+        self.set_ptp_common_params(velocity=100, acceleration=100)
+        self._get_pose()
 
     """
         Gets the current command index
@@ -427,6 +427,19 @@ class Dobot:
         msg.params.extend(bytearray(struct.pack('f', limit)))
         return self._send_command(msg)
 
+    """
+        Gets the velocity ratio, acceleration ratio in PTP mode
+    """
+    def _get_ptp_common_params(self):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_PTP_COMMON_PARAMS
+        msg.ctrl = ControlValues.ZERO
+        response = self._send_command(msg,wait=False)
+        self.ptpCommonVelocityRatio = struct.unpack_from('f', response.params, 0)[0]
+        self.ptpCommonAccelerationRatio = struct.unpack_from('f', response.params, 4)[0]
+        if self.verbose:
+            print("pydobot: PTP common velocity ratio: %03.1f acceleration ratio:%03.1f" % (self.ptpCommonVelocityRatio, self.ptpCommonAccelerationRatio))
+        return response
 
     """
         Sets the velocity ratio, acceleration ratio in PTP mode
@@ -518,8 +531,8 @@ class Dobot:
         self._set_end_effector_gripper(enable)
 
     def speed(self, velocity=100., acceleration=100.):
-        self._set_ptp_common_params(velocity, acceleration)
-        self._set_ptp_coordinate_params(velocity, acceleration)
+        self.set_ptp_common_params(velocity, acceleration)
+        self.set_ptp_coordinate_params(velocity, acceleration)
 
     def pose(self):
         response = self._get_pose()
@@ -561,3 +574,9 @@ class Dobot:
         if (abs(jump-self.ptpJump)>0.01 or abs(limit-self.ptpLimit)>0.01):  #float number never equal....
             self._set_ptp_jump_params(jump, limit)
             self._get_ptp_jump_params()
+
+    def set_ptp_common_params(self, velocity, acceleration):
+        self._get_ptp_common_params()
+        if (abs(velocity-self.ptpCommonVelocityRatio)>0.01 or abs(acceleration-self.ptpCommonAccelerationRatio)>0.01):  #float number never equal....
+            self._set_ptp_common_params(velocity, acceleration)
+            self._get_ptp_common_params()

@@ -72,6 +72,19 @@ def getPose(parameters):
     return ("pose: x:%03.1f y:%03.1f z:%03.1f r:%03.1f j1:%03.1f j2:%03.1f j3:%03.1f j4:%03.1f" %
             (device.x, device.y, device.z, device.r, device.j1, device.j2, device.j3, device.j4))
 
+def home(parameters):
+    print("home")
+    print(parameters)
+    x = y = z = r = None
+    try:
+        x = float(parameters["x"][0])
+        y = float(parameters["y"][0])
+        z = float(parameters["z"][0])
+        r = float(parameters["r"][0])
+    except:
+        pass
+    device.home(x,y,z,r)
+
 if psutil.OSX:
     available_ports = glob('/dev/cu*usbserial*')  # mask for OSX Dobot port
 if psutil.LINUX:
@@ -103,11 +116,12 @@ webRespDict["/version"]=("Dobot device version: %d.%d.%d" % (device.majorVersion
 #device._get_home_parameters()
 #device._set_home_cmd()
 
-device.home(200,0,25,0)
+#
 
 webRespDict["/jog"]=jogMachine
 webRespDict["/emotor"]=moveEMotor
 webRespDict["/pose"]=getPose
+webRespDict["/home"]=home
 
 httpd.serve_forever()
 

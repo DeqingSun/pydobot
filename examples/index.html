@@ -24,7 +24,12 @@
     var moveEMotor = function(speed,dist){
         console.log(speed,dist)
         var xhttp = new XMLHttpRequest();
-        xhttp.open("GET", "emotor?index=0&isEnabled=1&speed="+speed+"&&distance="+dist, true);
+        xhttp.open("GET", "emotor?index=0&isEnabled=1&speed="+speed+"&distance="+dist, true);
+        xhttp.send();
+    }
+    var home = function(){
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET", "home?x=200&y=0&z=25&r=0", true);
         xhttp.send();
     }
     var getPose = function(){
@@ -65,5 +70,8 @@ Hello world
 <button class="bigbutton" onmousedown="moveEMotor(-25000,500)">Motor Down fast and small (for end)</button>
 <p id="pose_info">Pose Info</p>
 <button class="bigbutton" onmousedown="getPose()">Get Pose</button>
+<br>
+<button class="bigbutton" onmousedown="home()">Home</button>
+
 </body>
 </html>

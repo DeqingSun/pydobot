@@ -79,7 +79,10 @@ class Dobot:
     def _send_command(self, msg, wait=False):
         self.lock.acquire()
         self._send_message(msg)
-        response = self._read_message()
+        for i in range(30): #some commands are slower, give them more time
+            response = self._read_message()
+            if response != None:
+                break        
         self.lock.release()
 
         if not wait:
@@ -90,7 +93,10 @@ class Dobot:
             print('pydobot: waiting for command', expected_idx)
 
         while True:
-            current_idx = self._get_queued_cmd_current_index()
+            try:
+                current_idx = self._get_queued_cmd_current_index()
+            except:
+                pass    #at end of home command, there is a huge delay, which means dobot will not respond for 1~2 seconds 
 
             if current_idx != expected_idx:
                 time.sleep(0.1)
@@ -123,6 +129,46 @@ class Dobot:
             print("pydobot device version: %d.%d.%d" %
                   (self.majorVersion, self.minorVersion, self.revision))
         return response
+
+    """
+        Get HOME parameters
+    """
+    def _get_home_parameters(self):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_HOME_PARAMS
+        msg.ctrl = ControlValues.ZERO
+        response = self._send_command(msg,wait=False)
+        self.homeX = struct.unpack_from('f', response.params, 0)[0]
+        self.homeY = struct.unpack_from('f', response.params, 4)[0]
+        self.homeZ = struct.unpack_from('f', response.params, 8)[0]
+        self.homeR = struct.unpack_from('f', response.params, 12)[0]
+        if self.verbose:
+            print("pydobot home params: %03.1f, %03.1f, %03.1f, %03.1f" % (self.homeX, self.homeY, self.homeZ, self.homeR))
+        return response
+
+    """
+        Set HOME parameters
+    """
+    def _set_home_parameters(self, x, y, z, r):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_HOME_PARAMS
+        msg.ctrl = ControlValues.THREE
+        msg.params = bytearray([])
+        msg.params.extend(bytearray(struct.pack('f', x)))
+        msg.params.extend(bytearray(struct.pack('f', y)))
+        msg.params.extend(bytearray(struct.pack('f', z)))
+        msg.params.extend(bytearray(struct.pack('f', r)))
+        return self._send_command(msg)  #this is slower than other commands
+
+    """
+        Executes Set Home Command
+    """
+    def _set_home_cmd(self, wait=False):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_HOME_CMD
+        msg.ctrl = ControlValues.THREE
+        msg.params = bytearray()
+        return self._send_command(msg, wait)
 
     """
         Executes the CP Command
@@ -432,3 +478,12 @@ class Dobot:
         j3 = struct.unpack_from('f', response.params, 24)[0]
         j4 = struct.unpack_from('f', response.params, 28)[0]
         return x, y, z, r, j1, j2, j3, j4
+
+    def home(self, x=None, y=None, z=None, r=None):
+        if (x!=None and y!=None and z!=None and r!=None):
+            self._get_home_parameters()
+            if (abs(x-self.homeX)>0.01 or abs(y-self.homeY)>0.01 or abs(z-self.homeZ)>0.01 or abs(r-self.homeR)>0.01):  #float number never equal....
+                self._set_home_parameters(x, y, z, r);
+                self._get_home_parameters()
+        self._set_home_cmd(True)
+    

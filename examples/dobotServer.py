@@ -96,8 +96,14 @@ webRespDict["/version"]=("Dobot device version: %d.%d.%d" % (device.majorVersion
 
 #device.move_to(x + 20, y, z, r, wait=False)
 #device.move_to(x, y, z, r, wait=True)  # we wait until this movement is done before continuing
+#device._get_home_parameters() 
+#device._set_home_parameters(200,0,25,0);
+#time.sleep(0.1)    #give machine some time to settle
+#device._get_home_parameters()   #defalut 264.4, 0.0, -8.5
+#device._get_home_parameters()
+#device._set_home_cmd()
 
-
+device.home(200,0,25,0)
 
 webRespDict["/jog"]=jogMachine
 webRespDict["/emotor"]=moveEMotor

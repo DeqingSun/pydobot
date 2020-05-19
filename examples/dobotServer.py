@@ -24,8 +24,11 @@ class GetHandler(
                 self.wfile.write(bytes(respContent, 'UTF-8'))
             elif callable(respContent):
                 query_components = parse_qs(parsedPath.query)
-                self.wfile.write(bytes("call "+respContent.__name__, 'UTF-8'))
-                respContent(query_components)
+                functionResp = respContent(query_components)
+                if (type(functionResp) == str):
+                    self.wfile.write(bytes(functionResp, 'UTF-8'))
+                else:
+                    self.wfile.write(bytes("call "+respContent.__name__, 'UTF-8'))
             else:
                 self.wfile.write(bytes("unknown ", 'UTF-8'))
         else:
@@ -64,6 +67,11 @@ def moveEMotor(parameters):
     distance = int(parameters["distance"][0])
     device._set_emotor_s(index, isEnabled, speed, distance);
 
+def getPose(parameters):
+    device._get_pose()
+    return ("pose: x:%03.1f y:%03.1f z:%03.1f r:%03.1f j1:%03.1f j2:%03.1f j3:%03.1f j4:%03.1f" %
+            (device.x, device.y, device.z, device.r, device.j1, device.j2, device.j3, device.j4))
+
 if psutil.OSX:
     available_ports = glob('/dev/cu*usbserial*')  # mask for OSX Dobot port
 if psutil.LINUX:
@@ -93,6 +101,7 @@ webRespDict["/version"]=("Dobot device version: %d.%d.%d" % (device.majorVersion
 
 webRespDict["/jog"]=jogMachine
 webRespDict["/emotor"]=moveEMotor
+webRespDict["/pose"]=getPose
 
 httpd.serve_forever()
 

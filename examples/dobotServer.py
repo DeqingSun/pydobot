@@ -4,6 +4,8 @@ from urllib.parse import urlparse
 from urllib.parse import parse_qs
 import logging
 
+import PCBMap
+
 PORT = 8000
 
 webRespDict = {}
@@ -97,6 +99,38 @@ def home(parameters):
     except:
         pass
     device.home(x,y,z,r)
+    
+def test(parameters):
+    print("test")
+    print(parameters)
+    #testpcbmap
+    pcbMap = PCBMap.PCBMap()
+    
+    pcbMap.dobotHeight = 18.1-0.2
+    
+    pcbMap.addPcbRefPoint(0,0);
+    pcbMap.addPcbRefPoint(2.54*9,2.54*23);
+    
+    pcbMap.addDobotRefPoint(239.5,3.3);
+    pcbMap.addDobotRefPoint(222.6,63.9);
+    
+    pcbMap.calculateTransform()
+    
+    pcbMap.testFunc()
+    
+    counter = 0;
+    device.jump_to(220,0,30,0,wait=True)
+    for p in pcbMap.testPoints2:
+        print(p)
+        device.jump_to(p[0],p[1],pcbMap.dobotHeight,0,wait=True)
+        device._set_jog_command(0,0);   #or next command will trigger bug, axis will move.
+        device._set_emotor_s(0, 1, -1000, 30,wait=True)
+        #device._set_jog_command(0,0);
+        counter +=1;
+        if counter>10:
+            pass
+            #break
+    device.move_inc_to(0,0,10,0,wait=True)
 
 if psutil.OSX:
     available_ports = glob('/dev/cu*usbserial*')  # mask for OSX Dobot port
@@ -109,11 +143,11 @@ device._get_device_version()
 
 #test only
 #device._set_end_effector_parameters(65) #paste dispenser
-device._get_end_effector_parameters()
-device._get_jog_joint_parameters()  #default: jog joint velocity 15.0, 15.0, 15.0, 30.0. jog joint acceleration 50.0, 50.0, 50.0, 50.0
-device._get_jog_coordinate_parameters() #default:jog coordinate velocity 60.0, 60.0, 60.0, 60.0. jog coordinate acceleration 60.0, 60.0, 60.0, 60.0
+#device._get_end_effector_parameters()
+#device._get_jog_joint_parameters()  #default: jog joint velocity 15.0, 15.0, 15.0, 30.0. jog joint acceleration 50.0, 50.0, 50.0, 50.0
+#device._get_jog_coordinate_parameters() #default:jog coordinate velocity 60.0, 60.0, 60.0, 60.0. jog coordinate acceleration 60.0, 60.0, 60.0, 60.0
 #device._set_jog_common_parameters(1.5,5.0)  
-device._get_jog_common_parameters() #default jog velocityRatio:15.000 jog accelerationRatio:50.000
+#device._get_jog_common_parameters() #default jog velocityRatio:15.000 jog accelerationRatio:50.000
 
 webRespDict["/version"]=("Dobot device version: %d.%d.%d" % (device.majorVersion, device.minorVersion, device.revision))
 
@@ -136,6 +170,9 @@ webRespDict["/emotor"]=moveEMotor
 webRespDict["/pose"]=getPose
 webRespDict["/home"]=home
 webRespDict["/moveinc"]=moveInc
+webRespDict["/test"]=test
+
+    
 
 
 #startx = device.x

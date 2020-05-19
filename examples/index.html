@@ -39,6 +39,11 @@
         xhttp.open("GET", "home?x=200&y=0&z=25&r=0", true);
         xhttp.send();
     }
+    var test = function(){
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET", "test?", true);
+        xhttp.send();
+    }
     var getPose = function(){
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
@@ -88,6 +93,7 @@ Hello world
 <button class="bigbutton" onmousedown="getPose()">Get Pose</button>
 <br>
 <button class="bigbutton" onmousedown="home()">Home</button>
-
+<br>
+<button class="bigbutton" onmousedown="test()">Test</button>
 </body>
 </html>

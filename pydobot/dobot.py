@@ -471,7 +471,7 @@ class Dobot:
     """
         Set External Motor movement
     """
-    def _set_emotor_s(self, index, isEnabled, speed, distance):
+    def _set_emotor_s(self, index, isEnabled, speed, distance, wait = False):
         msg = Message()
         msg.id = CommunicationProtocolIDs.SET_EMOTOR_S
         msg.ctrl = ControlValues.THREE
@@ -480,7 +480,7 @@ class Dobot:
         msg.params.extend(bytearray(struct.pack('B', isEnabled)))
         msg.params.extend(bytearray(struct.pack('i', speed)))
         msg.params.extend(bytearray(struct.pack('i', distance)))
-        return self._send_command(msg)
+        return self._send_command(msg, wait)
 
     """
         Clears command queue

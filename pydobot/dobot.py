@@ -113,6 +113,7 @@ class Dobot:
         if self.verbose:
             print('pydobot: >>', msg)
         self.ser.write(msg.bytes())
+        #print(' '.join(format(x, '02x') for x in msg.bytes()))
 
     """
         Get Device Version

@@ -132,10 +132,19 @@ def test(parameters):
             #break
     device.move_inc_to(0,0,10,0,wait=True)
 
-if psutil.OSX:
-    available_ports = glob('/dev/cu*usbserial*')  # mask for OSX Dobot port
-if psutil.LINUX:
-    available_ports = glob('/dev/ttyUSB*')  # mask for Linux Dobot port
+#if psutil.OSX:
+#    available_ports = glob('/dev/cu*usbserial*')  # mask for OSX Dobot port
+#if psutil.LINUX:
+#    available_ports = glob('/dev/ttyUSB*')  # mask for Linux Dobot port
+
+available_ports = []
+for port in list_ports.comports():
+    if (port.pid == 0x7523 and port.vid == 0x1a86):
+        available_ports.append(port.device)
+
+if len(available_ports)==0:
+    print("No Dobot found")
+    exit()
 
 device = Dobot(port=available_ports[0], verbose=True)
 

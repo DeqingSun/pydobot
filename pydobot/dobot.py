@@ -470,6 +470,55 @@ class Dobot:
         return self._send_command(msg, wait)
 
     """
+        Gets arc parameters
+    """
+    def _get_arc_params(self):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_ARC_PARAMS
+        msg.ctrl = ControlValues.ZERO
+        response = self._send_command(msg,wait=False)
+        self.arcXYZVel = struct.unpack_from('f', response.params, 0)[0]
+        self.arcRVel = struct.unpack_from('f', response.params, 4)[0]
+        self.arcXYZAcc = struct.unpack_from('f', response.params, 8)[0]
+        self.arcRAcc = struct.unpack_from('f', response.params, 12)[0]
+        if self.verbose:
+            print("pydobot: Arc params vel: %03.1f,%03.1f acc:%03.1f,%03.1f" %
+                  (self.arcXYZVel, self.arcRVel, self.arcXYZAcc, self.arcRAcc))
+        return response
+
+    """
+        Sets the velocity and acceleration of arc parameters
+    """
+    def _set_arc_params(self, velocity, acceleration):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_ARC_PARAMS
+        msg.ctrl = ControlValues.THREE
+        msg.params = bytearray([])
+        msg.params.extend(bytearray(struct.pack('f', velocity)))
+        msg.params.extend(bytearray(struct.pack('f', velocity)))
+        msg.params.extend(bytearray(struct.pack('f', acceleration)))
+        msg.params.extend(bytearray(struct.pack('f', acceleration)))
+        return self._send_command(msg)
+
+    """
+        Sets arc command
+    """
+    def _set_arc_command(self, x, y, z, r, x1, y1, z1, r1, wait = False):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_ARC_COMMAND
+        msg.ctrl = ControlValues.THREE
+        msg.params = bytearray([])
+        msg.params.extend(bytearray(struct.pack('f', x)))
+        msg.params.extend(bytearray(struct.pack('f', y)))
+        msg.params.extend(bytearray(struct.pack('f', z)))
+        msg.params.extend(bytearray(struct.pack('f', r)))
+        msg.params.extend(bytearray(struct.pack('f', x1)))
+        msg.params.extend(bytearray(struct.pack('f', y1)))
+        msg.params.extend(bytearray(struct.pack('f', z1)))
+        msg.params.extend(bytearray(struct.pack('f', r1)))
+        return self._send_command(msg, wait)
+
+    """
         Set External Motor movement
     """
     def _set_emotor_s(self, index, isEnabled, speed, distance, wait = False):
@@ -530,6 +579,9 @@ class Dobot:
 
     def jump_to(self, x, y, z, r, wait=False):
         self._set_ptp_cmd(x, y, z, r, mode=PTPMode.JUMP_XYZ, wait=wait)
+    
+    def arc_via_to(self, x, y, z, r, x1, y1, z1, r1, wait = False):
+        self._set_arc_command(x, y, z, r, x1, y1, z1, r1, wait = False)
 
     def suck(self, enable):
         self._set_end_effector_suction_cup(enable)
@@ -587,3 +639,9 @@ class Dobot:
         if (abs(velocity-self.ptpCommonVelocityRatio)>0.01 or abs(acceleration-self.ptpCommonAccelerationRatio)>0.01):  #float number never equal....
             self._set_ptp_common_params(velocity, acceleration)
             self._get_ptp_common_params()
+
+    def set_arc_params(self, velocity, acceleration):
+        self._get_arc_params()
+        if (abs(velocity-self.arcXYZVel)>0.01 or abs(acceleration-self.arcXYZAcc)>0.01):  #float number never equal....
+            self._set_arc_params(velocity, acceleration)
+            self._get_arc_params()

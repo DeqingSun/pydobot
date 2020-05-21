@@ -158,6 +158,10 @@ device._get_device_version()
 #device._set_jog_common_parameters(1.5,5.0)  
 #device._get_jog_common_parameters() #default jog velocityRatio:15.000 jog accelerationRatio:50.000
 
+#device.set_arc_params(50,50);
+#device.move_to(200,0,25,0, wait=True)
+#device.arc_via_to(210,0,25,0,220,10,25,0, wait=True)
+
 webRespDict["/version"]=("Dobot device version: %d.%d.%d" % (device.majorVersion, device.minorVersion, device.revision))
 
 #(x, y, z, r, j1, j2, j3, j4) = device.pose()

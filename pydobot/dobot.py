@@ -12,7 +12,7 @@ from .enums.ControlValues import ControlValues
 
 class Dobot:
 
-    def __init__(self, port, verbose=False):
+    def __init__(self, port, verbose=False, skipInit=False):
         threading.Thread.__init__(self)
 
         self._on = True
@@ -26,14 +26,15 @@ class Dobot:
         is_open = self.ser.isOpen()
         if self.verbose:
             print('pydobot: %s open' % self.ser.name if is_open else 'failed to open serial port')
-
-        self._set_queued_cmd_start_exec()
-        self._set_queued_cmd_clear()
-        self.set_ptp_joint_params(200, 200, 200, 200, 200, 200, 200, 200)
-        self.set_ptp_coordinate_params(velocity=200, acceleration=200)
-        self.set_ptp_jump_params(10, 200)
-        self.set_ptp_common_params(velocity=100, acceleration=100)
-        self._get_pose()
+            
+        if not skipInit:
+            self._set_queued_cmd_start_exec()
+            self._set_queued_cmd_clear()
+            self.set_ptp_joint_params(200, 200, 200, 200, 200, 200, 200, 200)
+            self.set_ptp_coordinate_params(velocity=200, acceleration=200)
+            self.set_ptp_jump_params(10, 200)
+            self.set_ptp_common_params(velocity=100, acceleration=100)
+            self._get_pose()
 
     """
         Gets the current command index
@@ -519,6 +520,32 @@ class Dobot:
         return self._send_command(msg, wait)
 
     """
+        Gets the velocity ratio, acceleration ratio in ARC mode
+    """
+    def _get_arc_common_params(self):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_ARC_COMMON_PARAMS_UNDOCUMENTED
+        msg.ctrl = ControlValues.ZERO
+        response = self._send_command(msg,wait=False)
+        self.arcCommonVelocityRatio = struct.unpack_from('f', response.params, 0)[0]
+        self.arcCommonAccelerationRatio = struct.unpack_from('f', response.params, 4)[0]
+        if self.verbose:
+            print("pydobot: ARC common velocity ratio: %03.1f acceleration ratio:%03.1f" % (self.arcCommonVelocityRatio, self.arcCommonAccelerationRatio))
+        return response
+
+    """
+        Sets the velocity ratio, acceleration ratio in ARC mode
+    """
+    def _set_arc_common_params(self, velocity, acceleration):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_ARC_COMMON_PARAMS_UNDOCUMENTED
+        msg.ctrl = ControlValues.THREE
+        msg.params = bytearray([])
+        msg.params.extend(bytearray(struct.pack('f', velocity)))
+        msg.params.extend(bytearray(struct.pack('f', acceleration)))
+        return self._send_command(msg)
+
+    """
         Set External Motor movement
     """
     def _set_emotor_s(self, index, isEnabled, speed, distance, wait = False):
@@ -581,7 +608,7 @@ class Dobot:
         self._set_ptp_cmd(x, y, z, r, mode=PTPMode.JUMP_XYZ, wait=wait)
     
     def arc_via_to(self, x, y, z, r, x1, y1, z1, r1, wait = False):
-        self._set_arc_command(x, y, z, r, x1, y1, z1, r1, wait = False)
+        return self._set_arc_command(x, y, z, r, x1, y1, z1, r1, wait = False)
 
     def suck(self, enable):
         self._set_end_effector_suction_cup(enable)
@@ -645,3 +672,8 @@ class Dobot:
         if (abs(velocity-self.arcXYZVel)>0.01 or abs(acceleration-self.arcXYZAcc)>0.01):  #float number never equal....
             self._set_arc_params(velocity, acceleration)
             self._get_arc_params()
+            
+    def set_arc_speed(self, velocity, acceleration):
+        #undocumented, reverse engineered from Teaching & Playback in Dobot Studio
+        self._set_ptp_common_params(velocity, acceleration)
+        self._set_arc_common_params(velocity, acceleration)

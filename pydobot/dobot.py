@@ -34,6 +34,7 @@ class Dobot:
             self.set_ptp_coordinate_params(velocity=200, acceleration=200)
             self.set_ptp_jump_params(10, 200)
             self.set_ptp_common_params(velocity=100, acceleration=100)
+            self.set_end_effector_parameters(65)
             self._get_pose()
 
     """
@@ -599,13 +600,13 @@ class Dobot:
         self.move_to(x, y, z, r)
 
     def move_to(self, x, y, z, r, wait=False):
-        self._set_ptp_cmd(x, y, z, r, mode=PTPMode.MOVL_XYZ, wait=wait)
+        return self._set_ptp_cmd(x, y, z, r, mode=PTPMode.MOVL_XYZ, wait=wait)
         
     def move_inc_to(self, x, y, z, r, wait=False):
-        self._set_ptp_cmd(x, y, z, r, mode=PTPMode.MOVJ_XYZ_INC, wait=wait)
+        return self._set_ptp_cmd(x, y, z, r, mode=PTPMode.MOVJ_XYZ_INC, wait=wait)
 
     def jump_to(self, x, y, z, r, wait=False):
-        self._set_ptp_cmd(x, y, z, r, mode=PTPMode.JUMP_XYZ, wait=wait)
+        return self._set_ptp_cmd(x, y, z, r, mode=PTPMode.JUMP_XYZ, wait=wait)
     
     def arc_via_to(self, x, y, z, r, x1, y1, z1, r1, wait = False):
         return self._set_arc_command(x, y, z, r, x1, y1, z1, r1, wait = False)
@@ -648,6 +649,12 @@ class Dobot:
             abs(a_z-self.ptpJointAccZ)>0.01 or abs(a_r-self.ptpJointAccR)>0.01):  #float number never equal....
             self._set_ptp_joint_params(v_x, v_y, v_z, v_r, a_x, a_y, a_z, a_r)
             self._get_ptp_joint_params()
+            
+    def set_end_effector_parameters(self, xBias):
+        self._get_end_effector_parameters()
+        if (abs(xBias-self.endEffectorXBias)>0.01):  #float number never equal....
+            self.set_end_effector_parameters(xBias) 
+            self._get_end_effector_parameters()
         
     def set_ptp_coordinate_params(self, velocity, acceleration):
         self._get_ptp_coordinate_params()

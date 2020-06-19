@@ -5,6 +5,7 @@ import threading
 import warnings
 
 from .message import Message
+from .enums.EIOMode import EIOMode
 from .enums.PTPMode import PTPMode
 from .enums.CommunicationProtocolIDs import CommunicationProtocolIDs
 from .enums.ControlValues import ControlValues
@@ -546,6 +547,51 @@ class Dobot:
         msg.params.extend(bytearray(struct.pack('f', acceleration)))
         return self._send_command(msg)
 
+    
+    """
+        Gets EIO Multiplexing
+    """    
+    def _get_io_multiplexing(self,addr):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_IOMULTIPLEXING
+        msg.ctrl = ControlValues.ZERO
+        msg.params = bytearray([addr,0])  #different from manual, add ano
+        response = self._send_command(msg,wait=False)
+        return response
+
+    """
+        Sets EIO Multiplexing
+    """    
+    def _set_io_multiplexing(self,addr,multiplexing):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_IOMULTIPLEXING
+        msg.ctrl = ControlValues.THREE
+        msg.params = bytearray([addr,multiplexing])  
+        response = self._send_command(msg,wait=False)
+        return response    
+    
+    """
+        Gets EIO Output Level
+    """    
+    def _get_io_do(self,addr):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_IODO
+        msg.ctrl = ControlValues.ZERO
+        msg.params = bytearray([addr,0])  #different from manual, add ano
+        response = self._send_command(msg,wait=False)
+        return response
+    
+    """
+        Sets EIO Output Level
+    """    
+    def _set_io_do(self,addr,do):
+        msg = Message()
+        msg.id = CommunicationProtocolIDs.SET_GET_IODO
+        msg.ctrl = ControlValues.THREE
+        msg.params = bytearray([addr,do]) 
+        response = self._send_command(msg,wait=False)
+        return response       
+    
     """
         Set External Motor movement
     """
@@ -600,16 +646,16 @@ class Dobot:
         self.move_to(x, y, z, r)
 
     def move_to(self, x, y, z, r, wait=False):
-        return self._set_ptp_cmd(x, y, z, r, mode=PTPMode.MOVL_XYZ, wait=wait)
+        return self._set_ptp_cmd(x, y, z, r, PTPMode.MOVL_XYZ, wait)
         
     def move_inc_to(self, x, y, z, r, wait=False):
-        return self._set_ptp_cmd(x, y, z, r, mode=PTPMode.MOVJ_XYZ_INC, wait=wait)
+        return self._set_ptp_cmd(x, y, z, r, PTPMode.MOVJ_XYZ_INC, wait)
 
     def jump_to(self, x, y, z, r, wait=False):
-        return self._set_ptp_cmd(x, y, z, r, mode=PTPMode.JUMP_XYZ, wait=wait)
+        return self._set_ptp_cmd(x, y, z, r, PTPMode.JUMP_XYZ, wait)
     
     def arc_via_to(self, x, y, z, r, x1, y1, z1, r1, wait = False):
-        return self._set_arc_command(x, y, z, r, x1, y1, z1, r1, wait = False)
+        return self._set_arc_command(x, y, z, r, x1, y1, z1, r1, wait)
 
     def suck(self, enable):
         self._set_end_effector_suction_cup(enable)
@@ -684,3 +730,21 @@ class Dobot:
         #undocumented, reverse engineered from Teaching & Playback in Dobot Studio
         self._set_ptp_common_params(velocity, acceleration)
         self._set_arc_common_params(velocity, acceleration)
+        
+    def get_io_multiplexing(self,addr):
+        msg = Message()
+        response = self._get_io_multiplexing(addr)
+        multiplexing = struct.unpack_from('B', response.params, 1)[0]
+        return multiplexing
+    
+    def set_io_multiplexing(self,addr,multiplexing):
+        return self._set_io_multiplexing(addr,multiplexing)
+
+    def get_io_do(self,addr):
+        msg = Message()
+        response = self._get_io_do(addr)
+        do = struct.unpack_from('B', response.params, 1)[0]
+        return do
+    
+    def set_io_do(self,addr,do):
+        return self._set_io_do(addr,do)    
